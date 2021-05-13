@@ -26,7 +26,7 @@ async function get_vaccine_data(age, pincode, callback) {
         let _response_1 = (await driver).get(url);
         const pincode_field =(await driver).findElement(By.id("mat-input-0"));
         await pincode_field.sendKeys(pincode, Key.ENTER);
-        if (age == 18) {
+        if (age >= 18 && age < 45) {
             const age_field_18_plus = (await driver).findElement(By.xpath('/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[4]/div/div[1]'));
             (await age_field_18_plus).click().then(() => {
                 console.log('checked the 18+ checkbox');
