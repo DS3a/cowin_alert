@@ -10,6 +10,7 @@
   "author": "DeepBlueS3a",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.1",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
     "express-validator": "^6.11.1",

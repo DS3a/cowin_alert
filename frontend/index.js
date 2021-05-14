@@ -1,6 +1,7 @@
 const express = require("express");
 const admin = require("firebase-admin");
 const path = require("path");
+const axios = require("axios");
 const { body, validationResult } = require('express-validator');
 
 var serviceAccount = require("./creds/serviceAccount.json");
@@ -8,7 +9,9 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
-const port = 3001 || process.env.PORT;
+
+const backend_url = "http://localhost:3000";
+const port = 3001;
 const db = admin.firestore();
 const app = express();
 app.use(express.urlencoded({
@@ -21,24 +24,44 @@ app.get('/', (_req, res) => {
     res.sendFile(path.join(__dirname, '/pages/index.html'));
 });
 
+function add_user(user) {
+    console.log("trying to add user");
+    axios.post(backend_url+"/add_user", user).then((res) => {
+        console.log(res);
+    }).catch((e) => {
+        console.error(e);
+    });
+}
+
 app.post('/sign_up',
         body('phone_number').isMobilePhone(),
-        body('pin_code').isPostalCode("IN"),
         body('age').isNumeric(),
         body('email').isEmail().normalizeEmail(), 
         (req, res) => {
     const errors = validationResult(req);
-    console.log(errors.array().length, errors.array());
+    try {
+        req.body.district = req.body.district.slice(1, -1);
+        console.log(req.body);
+    } catch(e) {
+        console.log(e);
+    }
+    //    console.log(errors.array().length, errors.array());
     if (!errors.isEmpty()) {
         if (errors.array().length == 1 && errors.array()[0].param=='email') {
-            db.collection('users').add({
-                age: parseInt(req.body.age),
-                phoneNumber: req.body.phone_number,
-                pinCode: req.body.pin_code,
-            });
+            try {
+                add_user({
+                    age: parseInt(req.body.age),
+                    phoneNumber: req.body.phone_number,
+                    state: req.body.state,
+                    email: null,
+                    district: req.body.district    
+                });
+            } catch(e) {
+                console.error(`Unable to communicate with the backend due to error ${e}`);
+            }
             res.render(path.join(__dirname, '/pages/inner-page'), {
                 summary: "Signed Up",
-                message: "Signed Up Successfully, You can go back and add more Pincodes if you wish"
+                message: "Signed Up Successfully, You can go back and add more districts if you wish"
             });
             return;        
         }
@@ -58,12 +81,17 @@ app.post('/sign_up',
             message: "Vaccines aren't available for people under 18 yet. If you made a mistake entering your age, please go back and change it."
         })
     } else {
-        db.collection('users').add({
-            age: parseInt(req.body.age),
-            phoneNumber: req.body.phone_number,
-            pinCode: req.body.pin_code,
-            email: req.body.email
-        });
+        try {
+            add_user({
+                age: parseInt(req.body.age),
+                phoneNumber: req.body.phone_number,
+                state: req.body.state,
+                email: req.body.email,
+                district: req.body.district    
+            });
+        } catch(e) {
+            console.error(`Unable to communicate witht the backend ${e}`);
+        }
         res.render(path.join(__dirname, '/pages/inner-page'), {
             summary: "Signed Up",
             message: "Signed Up Successfully, You can go back and add more Pincodes if you wish"
@@ -71,6 +99,6 @@ app.post('/sign_up',
     }
 });
 
-app.listen(port, () => {
+app.listen(process.env.PORT || port, () => {
     console.log(`Started webserver in http://localhost:${port}`);
 });

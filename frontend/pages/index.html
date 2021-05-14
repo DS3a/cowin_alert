@@ -6,13 +6,16 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
   <title>GrabYourShot</title>
+  <link rel="icon" href="assets/img/vaccine_logo.png" type="image/icon type">
   <meta content="" name="description">
 
   <meta content="" name="keywords">
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
-
+  
+  <!--Script for dropdown menu-->
+  <script src="assets/js/cities.js"></script>
   <!-- Vendor CSS Files -->
   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
@@ -32,7 +35,7 @@
   <header id="header" class="header fixed-top">
     <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
 
-      <a href="index.html" class="logo d-flex align-items-center">
+      <a href="/" class="logo d-flex align-items-center">
         <img src="assets/img/logo.png" alt="">
         <span>GrabYourShot</span>
       </a>
@@ -92,9 +95,21 @@
                 <div class="col-md-6 ">
                     <div class="info-box">
                       <i class="bi bi-geo-alt"></i>
-                      <h3>Pincode</h3>
-                   </div>
-                  <input type="text" class="form-control" name="pin_code" placeholder="Required" required>
+                      <h3>Location</h3>
+                    </div>
+                    <select onchange="print_city('state', this.selectedIndex);" id="sts" name ="state" class="form-control" required>Select State</select>
+                    <select id ="state" class="form-control" name="district" required>Select District</select>
+                    <script language="javascript">print_state("sts");</script>
+
+
+                </div>
+
+                <div class="col-md-6">
+                  <div class="info-box">
+                    <i class="bi bi-clock"></i>
+                    <h3>Age</h3>
+                  </div>
+                  <input type="text" class="form-control" name="age" placeholder="Required" required>
                 </div>
 
                 <div class="col-md-6">
@@ -104,14 +119,6 @@
                   </div>
 
                   <input type="text" class="form-control" name="email" placeholder="Not Required">
-                </div>
-
-                <div class="col-md-6">
-                  <div class="info-box">
-                    <i class="bi bi-clock"></i>
-                    <h3>Age</h3>
-                  </div>
-                  <input type="text" class="form-control" name="age" placeholder="Required" required>
                 </div>
 
                 
@@ -133,6 +140,8 @@
 
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
+  
+  </script>
   <!-- Vendor JS Files -->
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.js"></script>
   <script src="assets/vendor/aos/aos.js"></script>
