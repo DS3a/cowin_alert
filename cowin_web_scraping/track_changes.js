@@ -9,6 +9,15 @@ async function track_changes(age, state, district, district_doc) {
                 centres: {0: centres_array[0], 1: centres_array[1], 2: centres_array[2]}
             });
             output = [false, null];
+        } else if (district_doc.data().dates != {
+            0: dates_array[0], 
+            1: dates_array[1], 
+            2: dates_array[2]} 
+            && centres_array != 
+            [["No Vaccination center is available for booking."],
+            ["No Vaccination center is available for booking."],
+            ["No Vaccination center is available for booking."]]) {
+        output = [true, "dates"];
         } else if (district_doc.data().centres != {
                 0: centres_array[0], 
                 1: centres_array[1], 
@@ -18,12 +27,7 @@ async function track_changes(age, state, district, district_doc) {
                 ["No Vaccination center is available for booking."],
                 ["No Vaccination center is available for booking."]]) {
             output = [true, "slots"];
-        } else if (district_doc.data().dates != {
-                0: dates_array[0], 
-                1: dates_array[1], 
-                2: dates_array[2]}) {
-            output = [true, "dates"];
-        } else {
+        }  else {
             output = [false, null];
         }
     }).then(() => {
