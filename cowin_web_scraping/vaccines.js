@@ -51,6 +51,8 @@ async function get_vaccine_data(age, state, district, callback) {
                                 let vaccines_date = (await driver).findElement(By.className("availability-date-ul"));
                                 (await vaccines_date).getText().then((dates) => {
                                     dates_array.push(dates.split('\n').slice(0, -2));
+                                }).catch((e) => {
+                                    console.error(`ran into error ${e}`);
                                 });
                                 let vaccines_centres = (await driver).findElement(By.className("col-padding matlistingblock"));
                                 (await vaccines_centres).getText().then((centres) => {
@@ -70,25 +72,41 @@ async function get_vaccine_data(age, state, district, callback) {
                                                 (await vaccines_date).getText().then((dates) => {
                                                     dates_array.push(dates.split('\n').slice(0, -2));
                                                     console.log(dates_array);
-                                                });
+                                                }).catch((e) => {
+                                                    console.error(`ran into error ${e}`);
+                                                });;
                                                 let vaccines_centres = (await driver).findElement(By.className("col-padding matlistingblock"));
                                                 (await vaccines_centres).getText().then((centres) => {
                                                     centres_array.push(centres.split('\n'));
                                                     console.log(centres_array);
                                                 }).then(async () => {
                                                     callback(dates_array, centres_array);
+                                                }).catch((e) => {
+                                                    console.error(`ran into error ${e}`);
                                                 });
                                             });
                                         });      
                                     });
+                                }).catch((e) => {
+                                    console.error(`ran into error ${e}`);
                                 });
                             
                                 let source = await driver.getPageSource();
                                 return await source;                                    
+                            }).catch((e) => {
+                                console.error(`ran into error ${e}`);
                             });
+                        }).catch((e) => {
+                            console.error(`ran into error ${e}`);
                         });
+                    }).catch((e) => {
+                        console.error(`ran into error ${e}`);
                     });
+                }).catch((e) => {
+                    console.error(`ran into error ${e}`);
                 });
+            }).catch((e) => {
+                console.error(`ran into error ${e}`);
             });
         });        
     } catch(e) {
