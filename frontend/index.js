@@ -11,7 +11,7 @@ admin.initializeApp({
 });
 
 
-const backend_url = "http://localhost:3000";
+const backend_url = "https://cowin-alerter-backend.herokuapp.com";
 const port = 3001;
 const db = admin.firestore();
 const app = express();
@@ -88,7 +88,7 @@ app.post('/sign_up',
         try {
             add_user({
                 age: parseInt(req.body.age),
-                otp: `/otp ${otp}`,
+                otp: otp,
                 state: req.body.state,
                 email: req.body.email,
                 district: req.body.district    

@@ -10,7 +10,7 @@ const bot = new TelegramBot(token, {
  });
 var serviceAccount = require("./creds/serviceAccount.json");
 const track_changes = require("./track_changes");
-const { send_message, send_email } = require("./send_message");
+const { send_message } = require("./send_message");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
@@ -46,12 +46,13 @@ app.post('/add_user', (req, res) => {
 
     let email = req.body.email;
     let otp = req.body.otp;
+    console.log(`otp is ${otp}`);
     db.collection("users").add({
         state: state,
         district: district,
         age: age,
         email: email,
-        telegramiD: null,
+        telegramId: null,
         otp: otp
     }).then(async () => {
         let districtsRef = db.collection("districts");
@@ -75,8 +76,9 @@ app.post('/add_user', (req, res) => {
                     district: district,
                     dates: null,
                     centres: null
+                }).then(() => {
+                    track_changes.track_changes(age, state, district, db);
                 });
-                track_changes.track_changes(age, state, district, db);
             }
         })
         .catch((error) => {
@@ -85,11 +87,6 @@ app.post('/add_user', (req, res) => {
     });
 
     res.send("added user To the database");
-});
-
-app.get('/test_email', (req, res) => {
-    send_email('deepesh.padala02@gmail.com', 'test');
-    res.send("sent email");
 });
 
 bot.onText(/\/start/, (msg, match) => {
@@ -107,14 +104,13 @@ bot.onText(/\/start/, (msg, match) => {
     console.log(otp);
     console.log(msg.chat.username);
     console.log(chatId);
-    bot.sendMessage(
-        chatId,
-        `Great work ${msg.chat.first_name}! we'll take it from here
-        and notify you whenever a new slot opens`,
-    );
+    let found_otp = false;
     db.collection("users").where("otp", "==", otp)
     .get().then(async (snapShot) => {
         (await snapShot).forEach((doc) => {
+            console.log('found user with otp', otp);
+            found_otp = true;
+            console.log(doc.data());
             db.collection("users").doc(doc.id).set({
                 age: doc.data().age,
                 email: doc.data().email,
@@ -123,6 +119,22 @@ bot.onText(/\/start/, (msg, match) => {
                 telegramId: msg.chat.id,
             })
         });
+    })
+    .then(() => {
+        console.log(found_otp);
+        if (found_otp) {
+            bot.sendMessage(
+                chatId,
+                `Great work ${msg.chat.first_name}! we'll take it from here
+and notify you whenever a new slot opens`,
+            );        
+        } else {
+            bot.sendMessage(
+                chatId,
+                `Uh oh! The OTP you've entered seems wrong
+Do go back and check again. Or you can generate a new OTP by signing up again`,
+            );        
+        }
     });
  });
 
@@ -135,46 +147,43 @@ function repeat_run(func_to_run) {
     }, INTERVAL_TO_CHECK);
 }
 
-app.listen(port, ()=>{
+app.listen(process.env.PORT || port, () => {
     console.log(`Listening on http://localhost:${port}`);
     repeat_run(() => {
         db.collection("districts").get().then(async (docs) => {
             docs.forEach(async (district) => {
                 let district_data = district.data(); // Assuming that there's a change
                 let changes = await track_changes.track_changes(district_data.age, 
-                    district_data.state, 
-                    district_data.district, 
-                    district, db);
-                
-                console.log(`got changes ${changes}`);
-
-                let there_is_change = changes[0];
-                let type = changes[1];
-                console.log(there_is_change);
-                console.log(type);
-
-                if (there_is_change) {
-                    let users = db.collection("users").get().then(async (docs) => {
-                        docs.forEach((user) => {
-                            let user_data = user.data();
-                            if (user_data.age == distrit_data.age && 
-                                user_data.state == distrit_data.state && 
-                                user_data.district == distrit_data.district) {
-                                    if (user_data.email == "@") {
-                                        let email = false;
-                                    } else {
-                                        let email = true;
-                                    }
-                                    send_message.send_message(
+                        district_data.state, 
+                        district_data.district, 
+                        district, db, async (changes) => {
+                    console.log(`got changes ${changes}`);
+                    let there_is_change = changes[0];
+                    let type = changes[1];
+                    console.log(there_is_change);
+                    console.log(type);
+    
+                    if (there_is_change) {
+                        let users = db.collection("users")
+                        .where("age", "==", district_data.age)
+                        .where("state", "==", district_data.state)
+                        .where("district", "==", district_data.district).get().then(async (docs) => {
+                            docs.forEach(async (user) => {
+                                let user_data = user.data();
+                                if (user_data.age == district_data.age && 
+                                        user_data.state == district_data.state && 
+                                        user_data.district == district_data.district) {
+                                    send_message(
                                         user_data.telegramId, 
-                                        email, 
+                                        user_data.email, 
                                         user_data.district, 
                                         type,
                                         bot);
-                                }
-                        })
-                    });
-                }
+                                    }
+                            })
+                        });
+                    }
+                });                
             });
         });
     });

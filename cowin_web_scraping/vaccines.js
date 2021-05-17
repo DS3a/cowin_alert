@@ -11,17 +11,27 @@ const {
 } = require('selenium-webdriver/chrome');
 
 
+const HEADLESS_TIMEOUT = 5000;
 const url = "https://www.cowin.gov.in/home";
 
 let options = new Options();
+options.setChromeBinaryPath(process.env.GOOGLE_CHROME_BIN);
+options.addArguments("--start-maximized");
+options.addArguments("--headless");
+options.addArguments("--window-size=1920,1080");
+options.addArguments("--ignore-certificate-errors");
+options.addArguments("--allow-running-insecure-content");
+user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36';
+options.addArguments(`user-agent=${user_agent}`);
 
 async function get_vaccine_data(age, state, district, callback) {
-    let serviceBuilder = new ServiceBuilder(process.env.CHROME_DRIVER_PATH);
+    let serviceBuilder = new ServiceBuilder('./chromedriver');
     let driver = new Builder()
     .forBrowser(Browser.CHROME)
     .setChromeOptions(options)
     .setChromeService(serviceBuilder)
     .build();
+    (await driver).sleep(HEADLESS_TIMEOUT);
     const next_button_xpath = "/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[5]/div/div/ul/carousel/div/a[2]";
     const search_button_xpath = `/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[2]/div/div/button`;
     const age_18_button_xpath = '/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[3]/div/div[1]';
@@ -34,10 +44,15 @@ async function get_vaccine_data(age, state, district, callback) {
         let centres_array = [];
 
         (await district_field_button).click().then(async () => {
+            await (await driver).sleep(HEADLESS_TIMEOUT);
             const state_select = await driver.findElement(By.id("mat-select-0")).click().then(async () => {
+                await (await driver).sleep(HEADLESS_TIMEOUT);
                 const state_to_select = await (await driver.findElement(By.xpath(`//*[contains(text(), '${state}')]`))).click().then(async () => {
+                    await (await driver).sleep(HEADLESS_TIMEOUT);
                     const district_select = (await driver).findElement(By.id("mat-select-value-3")).click().then(async () => {
+                        await (await driver).sleep(HEADLESS_TIMEOUT);
                         const district_driver = (await (await driver).findElement(By.xpath(`//*[contains(text(), '${district}')]`))).click().then(async () => {
+                            await (await driver).sleep(HEADLESS_TIMEOUT);
                             (await (await driver).findElement(By.xpath(search_button_xpath))).click().then(async () => {
                                 console.log('entered all parameters, now just need to read');
                                 if (age >= 18 && age < 45) {
@@ -74,12 +89,13 @@ async function get_vaccine_data(age, state, district, callback) {
                                                     console.log(dates_array);
                                                 }).catch((e) => {
                                                     console.error(`ran into error ${e}`);
-                                                });;
+                                                });
                                                 let vaccines_centres = (await driver).findElement(By.className("col-padding matlistingblock"));
                                                 (await vaccines_centres).getText().then((centres) => {
                                                     centres_array.push(centres.split('\n'));
                                                     console.log(centres_array);
                                                 }).then(async () => {
+                                                    console.log('got stuff, pushing it through the callback');
                                                     callback(dates_array, centres_array);
                                                 }).catch((e) => {
                                                     console.error(`ran into error ${e}`);

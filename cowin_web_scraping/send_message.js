@@ -12,8 +12,8 @@ function send_email(email, message) {
         }
       });
 
-    var mailOptions = {
-        from: 'COWIN_ALERTER@grabyourslot.com',
+      var mailOptions = {
+        from: process.env.MAILER_ID,
         to: email,
         subject: 'Vaccines Found',
         text: message
@@ -29,13 +29,14 @@ function send_email(email, message) {
 }
 
 function send_message(telegram_id, email, district, type, bot) {
+    let message;
     if (type == "slots") {
-        let message = `Hi, We found new slots open in the ${district} district. 
-        Hop onto the site ${cowin_site} quickly to grab your slot`;    
+        message = `Hi, We found new slots open in the ${district} district. 
+Hop onto the site ${cowin_site} quickly to grab your slot`;    
     } else {
-        let message = `Hi, the dates on the website has changed. 
-        This might mean that there are new slots in the ${district} district.
-        Hop onto the site ${cowin_site} quickly to check if there are new slots`;
+        message = `Hi, the dates on the website has changed. 
+This might mean that there are new slots in the ${district} district. Hop onto the site :  
+${cowin_site} quickly to check if there are new slots`;
     }
     console.log(message);
     bot.sendMessage(
@@ -47,5 +48,4 @@ function send_message(telegram_id, email, district, type, bot) {
     }
 }
 
-module.exports.send_email = send_email;
 module.exports.send_message = send_message;
