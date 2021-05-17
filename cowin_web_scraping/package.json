@@ -10,10 +10,13 @@
   "author": "DeepBlueS3a",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^9.0.2",
     "express": "^4.17.1",
     "firebase": "^8.6.1",
     "firebase-admin": "^9.8.0",
     "math": "^0.0.3",
+    "node-telegram-bot-api": "^0.53.0",
+    "nodemailer": "^6.6.0",
     "nodemon": "^2.0.7",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",

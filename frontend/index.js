@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const path = require("path");
 const axios = require("axios");
 const { body, validationResult } = require('express-validator');
+const otp_generator = require('otp-generator')
 
 var serviceAccount = require("./creds/serviceAccount.json");
 admin.initializeApp({
@@ -34,7 +35,6 @@ function add_user(user) {
 }
 
 app.post('/sign_up',
-        body('phone_number').isMobilePhone(),
         body('age').isNumeric(),
         body('email').isEmail().normalizeEmail(), 
         (req, res) => {
@@ -45,13 +45,13 @@ app.post('/sign_up',
     } catch(e) {
         console.log(e);
     }
-    //    console.log(errors.array().length, errors.array());
+    let otp = otp_generator.generate(6, { upperCase: false, specialChars: false});
     if (!errors.isEmpty()) {
         if (errors.array().length == 1 && errors.array()[0].param=='email') {
             try {
                 add_user({
                     age: parseInt(req.body.age),
-                    phoneNumber: req.body.phone_number,
+                    otp: otp,
                     state: req.body.state,
                     email: null,
                     district: req.body.district    
@@ -61,7 +61,9 @@ app.post('/sign_up',
             }
             res.render(path.join(__dirname, '/pages/inner-page'), {
                 summary: "Signed Up",
-                message: "Signed Up Successfully, You can go back and add more districts if you wish"
+                message: "Signed Up Successfully.",
+                link: "t.me/CowinAlerter_bot",
+                otp: `/otp ${otp}`
             });
             return;        
         }
@@ -73,18 +75,20 @@ app.post('/sign_up',
         msg += " Please go back and re-enter the values."
         res.render(path.join(__dirname, '/pages/inner-page'), {
             summary: "Failed To Sign Up",
-            message: msg
+            message: msg,
+            link: null
         });
     } else if (parseInt(req.body.age) < 18) {
         res.render(path.join(__dirname, '/pages/inner-page'), {
             summary: "Can't Sign Up",
-            message: "Vaccines aren't available for people under 18 yet. If you made a mistake entering your age, please go back and change it."
+            message: "Vaccines aren't available for people under 18 yet. If you made a mistake entering your age, please go back and change it.",
+            link: null,
         })
     } else {
         try {
             add_user({
                 age: parseInt(req.body.age),
-                phoneNumber: req.body.phone_number,
+                otp: `/otp ${otp}`,
                 state: req.body.state,
                 email: req.body.email,
                 district: req.body.district    
@@ -94,7 +98,9 @@ app.post('/sign_up',
         }
         res.render(path.join(__dirname, '/pages/inner-page'), {
             summary: "Signed Up",
-            message: "Signed Up Successfully, You can go back and add more Pincodes if you wish"
+            message: "Signed Up Successfully.",
+            link: "t.me/CowinAlerter_bot",
+            otp: `/otp ${otp}`
         });
     }
 });

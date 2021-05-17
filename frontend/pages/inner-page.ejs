@@ -67,7 +67,11 @@
         <h4>
           <%= message %>
         </h4>
-      </div>
+        <%if (link != null) { %>
+          <p>Now all you have to do is click on this <a href="https://t.me/CowinAlerter_bot">link</a></p><br>
+          <p>Click on the <b>/start</b> button and enter <b><%= otp %></b></p>
+        <% } %>
+        </div>
     </section>
 
   </main><!-- End #main -->

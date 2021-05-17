@@ -1,2 +1,5 @@
 cowin_web_scraping/node_modules
+cowin_web_scraping/creds
+cowin_web_scraping/.env
 frontend/node_modules
+frontend/creds

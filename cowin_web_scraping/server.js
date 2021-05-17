@@ -1,11 +1,16 @@
-const request_promise = require("request-promise");
 const express = require("express");
-const math = require("math");
 const vaccines = require("./vaccines");
 const admin = require("firebase-admin");
+const TelegramBot = require('node-telegram-bot-api');
+require('dotenv').config()
 
+const token = process.env.TELEGRAM_AUTH_TOKEN;
+const bot = new TelegramBot(token, {
+    polling: true
+ });
 var serviceAccount = require("./creds/serviceAccount.json");
 const track_changes = require("./track_changes");
+const { send_message, send_email } = require("./send_message");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
@@ -40,13 +45,14 @@ app.post('/add_user', (req, res) => {
     }
 
     let email = req.body.email;
-    let phoneNumber = req.body.phoneNumber;
+    let otp = req.body.otp;
     db.collection("users").add({
         state: state,
         district: district,
         age: age,
         email: email,
-        phoneNumber: phoneNumber
+        telegramiD: null,
+        otp: otp
     }).then(async () => {
         let districtsRef = db.collection("districts");
         let query = districtsRef
@@ -81,6 +87,46 @@ app.post('/add_user', (req, res) => {
     res.send("added user To the database");
 });
 
+app.get('/test_email', (req, res) => {
+    send_email('deepesh.padala02@gmail.com', 'test');
+    res.send("sent email");
+});
+
+bot.onText(/\/start/, (msg, match) => {
+    const chatId = msg.chat.id;
+    bot.sendMessage(
+        chatId,
+        'Hi please enter the OTP you got from the website, in the format `/otp {YOUR OTP}` (curly braces not inclusive)',
+    );
+ });
+
+ 
+ bot.onText(/\/otp/, (msg, match) => {
+    const chatId = msg.chat.id;
+    const otp = match.input.split(' ')[1];
+    console.log(otp);
+    console.log(msg.chat.username);
+    console.log(chatId);
+    bot.sendMessage(
+        chatId,
+        `Great work ${msg.chat.first_name}! we'll take it from here
+        and notify you whenever a new slot opens`,
+    );
+    db.collection("users").where("otp", "==", otp)
+    .get().then(async (snapShot) => {
+        (await snapShot).forEach((doc) => {
+            db.collection("users").doc(doc.id).set({
+                age: doc.data().age,
+                email: doc.data().email,
+                state: doc.data().state,
+                district: doc.data().district,
+                telegramId: msg.chat.id,
+            })
+        });
+    });
+ });
+
+
 function repeat_run(func_to_run) {
     func_to_run();
     setTimeout(() => {
@@ -98,7 +144,7 @@ app.listen(port, ()=>{
                 let changes = await track_changes.track_changes(district_data.age, 
                     district_data.state, 
                     district_data.district, 
-                    district);
+                    district, db);
                 
                 console.log(`got changes ${changes}`);
 
@@ -120,10 +166,11 @@ app.listen(port, ()=>{
                                         let email = true;
                                     }
                                     send_message.send_message(
-                                        user_data.phoneNumber, 
+                                        user_data.telegramId, 
                                         email, 
                                         user_data.district, 
-                                        type);
+                                        type,
+                                        bot);
                                 }
                         })
                     });
