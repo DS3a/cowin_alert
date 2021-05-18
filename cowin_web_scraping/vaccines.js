@@ -1,7 +1,6 @@
 const {
     Browser,
     Builder,
-    Key,
     By
 } = require('selenium-webdriver');
 
@@ -14,24 +13,35 @@ const {
 const HEADLESS_TIMEOUT = 5000;
 const url = "https://www.cowin.gov.in/home";
 
+console.log("in vaccines.js");
+console.log("initializing options");
+
+
 let options = new Options();
 options.setChromeBinaryPath(process.env.GOOGLE_CHROME_BIN);
+options.addArguments("--headless");
 options.addArguments("--start-maximized");
 options.addArguments("--headless");
 options.addArguments("--window-size=1920,1080");
 options.addArguments("--ignore-certificate-errors");
 options.addArguments("--allow-running-insecure-content");
+options.addArguments('--disable-dev-shm-usage');
+options.addArguments("--remote-debugging-port=0");
 user_agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.50 Safari/537.36';
 options.addArguments(`user-agent=${user_agent}`);
+console.log("added argumensts");
 
 async function get_vaccine_data(age, state, district, callback) {
-    let serviceBuilder = new ServiceBuilder('./chromedriver');
-    let driver = new Builder()
+    console.log("opeining service Builder");
+    let serviceBuilder = new ServiceBuilder();
+    console.log("initialized serice builder");
+    let driver = new Builder(process.env.CHROME_EXECUTABLE_PATH)
     .forBrowser(Browser.CHROME)
     .setChromeOptions(options)
     .setChromeService(serviceBuilder)
     .build();
     (await driver).sleep(HEADLESS_TIMEOUT);
+    console.log("opened service Builder");
     const next_button_xpath = "/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[5]/div/div/ul/carousel/div/a[2]";
     const search_button_xpath = `/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[2]/div/div/button`;
     const age_18_button_xpath = '/html/body/app-root/div/app-home/div[2]/div/appointment-table/div/div/div/div/div/div/div/div/div/div/div[2]/form/div/div/div[3]/div/div[1]';

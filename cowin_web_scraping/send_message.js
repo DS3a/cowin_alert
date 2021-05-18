@@ -32,7 +32,7 @@ function send_message(telegram_id, email, district, type, bot) {
     let message;
     if (type == "slots") {
         message = `Hi, We found new slots open in the ${district} district. 
-Hop onto the site ${cowin_site} quickly to grab your slot`;    
+Hop onto the site ${cowin_site} quickly to grab your shot`;    
     } else {
         message = `Hi, the dates on the website has changed. 
 This might mean that there are new slots in the ${district} district. Hop onto the site :  
